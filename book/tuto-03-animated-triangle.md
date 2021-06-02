@@ -8,20 +8,19 @@ Our first approach will be to create a variable named `t` which represents the s
 
 ```rust
 let mut t: f32 = -0.5;
-let mut closed = false;
-while !closed {
+event_loop.run(move |ev, _, control_flow| {
+    let vertex1 = Vertex { position: [-0.5 + t, -0.5] };
+    let vertex2 = Vertex { position: [ 0.0 + t,  0.5] };
+    let vertex3 = Vertex { position: [ 0.5 + t, -0.25] };
+    let shape = vec![vertex1, vertex2, vertex3];
+
+    let vertex_buffer = glium::VertexBuffer::new(&display, &shape).unwrap();
+
     // we update `t`
     t += 0.0002;
     if t > 0.5 {
         t = -0.5;
     }
-
-    // we create the shape an add `t` to each x coordinate
-    let vertex1 = Vertex { position: [-0.5 + t, -0.5] };
-    let vertex2 = Vertex { position: [ 0.0 + t,  0.5] };
-    let vertex3 = Vertex { position: [ 0.5 + t, -0.25] };
-    let shape = vec![vertex1, vertex2, vertex3];
-    let vertex_buffer = glium::VertexBuffer::new(&display, &shape).unwrap();
 
     // drawing
     let mut target = display.draw();
@@ -30,16 +29,17 @@ while !closed {
                 &Default::default()).unwrap();
     target.finish().unwrap();
 
-    events_loop.poll_events(|event| {
-        match event {
-            glutin::Event::WindowEvent { event, .. } => match event {
-                glutin::WindowEvent::CloseRequested => closed = true,
-                _ => ()
+    match ev {
+        glutin::event::Event::WindowEvent { event, .. } => match event {
+            glutin::event::WindowEvent::CloseRequested => {
+                *control_flow = glutin::event_loop::ControlFlow::Exit;
+                return;
             },
-            _ => (),
-        }
-    });
-}
+            _ => return,
+        },
+        _ => (),
+    }
+});
 ```
 
 If you run this code, you should see your triangle going from the left to the right of the screen, then jumping back to the left!
@@ -57,16 +57,15 @@ Do you remember vertex shaders? Our vertex shader takes as input the attributes 
 Let's reset our program to what it was at the end of the first tutorial, but keep `t`:
 
 ```rust
-let vertex1 = Vertex { position: [-0.5, -0.5] };
-let vertex2 = Vertex { position: [ 0.0,  0.5] };
-let vertex3 = Vertex { position: [ 0.5, -0.25] };
-let shape = vec![vertex1, vertex2, vertex3];
-
-let vertex_buffer = glium::VertexBuffer::new(&display, &shape).unwrap();
-
 let mut t: f32 = -0.5;
-let mut closed = false;
-while !closed {
+event_loop.run(move |ev, _, control_flow| {
+    let vertex1 = Vertex { position: [-0.5 + t, -0.5] };
+    let vertex2 = Vertex { position: [ 0.0 + t,  0.5] };
+    let vertex3 = Vertex { position: [ 0.5 + t, -0.25] };
+    let shape = vec![vertex1, vertex2, vertex3];
+
+    let vertex_buffer = glium::VertexBuffer::new(&display, &shape).unwrap();
+
     // we update `t`
     t += 0.0002;
     if t > 0.5 {
@@ -80,16 +79,17 @@ while !closed {
                 &Default::default()).unwrap();
     target.finish().unwrap();
 
-    events_loop.poll_events(|event| {
-        match event {
-            glutin::Event::WindowEvent { event, .. } => match event {
-                glutin::WindowEvent::CloseRequested => closed = true,
-                _ => ()
+    match ev {
+        glutin::event::Event::WindowEvent { event, .. } => match event {
+            glutin::event::WindowEvent::CloseRequested => {
+                *control_flow = glutin::event_loop::ControlFlow::Exit;
+                return;
             },
-            _ => (),
-        }
-    });
-}
+            _ => return,
+        },
+        _ => (),
+    }
+});
 ```
 
 And instead we are going to do a small change in our vertex shader:
